@@ -6,7 +6,7 @@
 /*   By:  <>                                        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/03 21:50:20 by                   #+#    #+#             */
-/*   Updated: 2017/05/04 00:37:09 by                  ###   ########.fr       */
+/*   Updated: 2017/05/04 14:28:14 by                  ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,9 @@
 				  		   "\t| w | %6.02f | %6.02f | %6.02f | %6.02f |\n"\
 						   "\t --------------------------------------- )"
 
+# include "m_mesh.h"
 # include "m_vector.h"
+# include <math.h>
 
 typedef struct s_matrix			t_matrix;
 typedef struct s_select_preset	t_select_preset;
@@ -65,5 +67,7 @@ char			*m_matrix_str(t_matrix *m, char *buf, size_t n);
 t_matrix		*m_matrix_mult(t_matrix *m1, t_matrix *m2);
 t_matrix		*m_matrix_transp(t_matrix *m1);
 t_vertex		*m_matrix_apply_vertex(t_matrix *m, t_vertex *vtx);
+t_triangle		*m_matrix_apply_triangle(t_matrix *m, t_triangle *tri);
+t_mesh			*m_matrix_apply_mesh(t_matrix *m, t_mesh *mesh);
 
 #endif

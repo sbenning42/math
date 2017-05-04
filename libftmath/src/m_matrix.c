@@ -6,7 +6,7 @@
 /*   By:  <>                                        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/03 22:11:37 by                   #+#    #+#             */
-/*   Updated: 2017/05/04 00:14:01 by                  ###   ########.fr       */
+/*   Updated: 2017/05/04 14:29:02 by                  ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -290,4 +290,41 @@ t_vertex		*m_matrix_apply_vertex(t_matrix *m, t_vertex *vtx)
 		+ vtx->v[2] * m->v[3][2] \
 		+ m->v[3][3];
 	return (m_vertex_new(x / w, y / w, z / w, vtx->c));
+}
+
+t_triangle		*m_matrix_apply_triangle(t_matrix *m, t_triangle *tri)
+{
+	t_triangle	*ntri;
+	t_vertex	*vtxs[3];
+
+	if (!(vtxs[0] = m_matrix_apply_vertex(m, tri->a)))
+		return (NULL);
+	if (!(vtxs[1] = m_matrix_apply_vertex(m, tri->b)))
+		return (NULL);
+	if (!(vtxs[2] = m_matrix_apply_vertex(m, tri->c)))
+		return (NULL);
+	ntri = m_triangle(vtxs[0], vtxs[1], vtxs[2]);
+	m_vertex_del(vtxs + 0);
+	m_vertex_del(vtxs + 1);
+	m_vertex_del(vtxs + 2);
+	return (ntri);
+}
+
+t_mesh			*m_matrix_apply_mesh(t_matrix *m, t_mesh *mesh)
+{
+	t_mesh		*nmesh;
+	t_mesh		*ntri;
+	t_triangle	*tri;
+
+	nmesh = NULL;
+	while (mesh)
+	{
+		if (!(tri = m_matrix_apply_triangle(m, mesh->tri)))
+			return (NULL);
+		if (!(ntri = m_mesh_new(tri)))
+			return (NULL);
+		m_mesh_add(&nmesh, ntri);
+		mesh = mesh->next;
+	}
+	return (nmesh);
 }

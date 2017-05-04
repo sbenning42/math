@@ -6,7 +6,7 @@
 /*   By:  <>                                        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/04 00:44:20 by                   #+#    #+#             */
-/*   Updated: 2017/05/04 02:23:36 by                  ###   ########.fr       */
+/*   Updated: 2017/05/04 14:34:36 by                  ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -135,6 +135,69 @@ t_vertex		*m_camera_watch_vertex(t_camera *cam, t_vertex *world_vtx)
 	return (vtx);
 }
 
+static int		camera_setvisible(t_camera *cam, t_triangle *tri)
+{
+	t_vertex	*centroid;
+	t_vector	*view_vct;
+	t_vector	*normal;
+	double		visible;
+
+	if (m_triangle_normal(tri, &normal))
+		return (-1);
+	if (!(centroid = m_triangle_centroid(tri)))
+		return (-1);
+	if (!(view_vct = m_vector_new(centroid, cam->position)))
+		return (-1);
+	m_vertex_del(&centroid);
+	visible = -m_vector_dot(view_vct, normal);
+	m_vector_del(&view_vct);
+	if (visible >= 0.0)
+		tri->visible = 0;
+	else
+		tri->visible = 1;
+	return (0);
+}
+
+t_triangle		*m_camera_watch_triangle(t_camera *cam, t_triangle *world_tri)
+{
+	t_triangle	*tri;
+	t_vertex	*vtxs[3];
+
+	if (!(vtxs[0] = m_camera_watch_vertex(cam, world_tri->a)))
+		return (NULL);
+	if (!(vtxs[1] = m_camera_watch_vertex(cam, world_tri->b)))
+		return (NULL);
+	if (!(vtxs[2] = m_camera_watch_vertex(cam, world_tri->c)))
+		return (NULL);
+	if (!(tri = m_triangle(vtxs[0], vtxs[1], vtxs[2])))
+		return (NULL);
+	if (camera_setvisible(cam, tri))
+		return (NULL);
+	m_vertex_del(vtxs + 0);
+	m_vertex_del(vtxs + 1);
+	m_vertex_del(vtxs + 2);
+	return (tri);
+}
+
+t_mesh			*m_camera_watch_mesh(t_camera *cam, t_mesh *world_mesh)
+{
+	t_mesh		*mesh;
+	t_mesh		*ntri;
+	t_triangle	*tri;
+
+	mesh = NULL;
+	while (world_mesh)
+	{
+		if (!(tri = m_camera_watch_triangle(cam, world_mesh->tri)))
+			return (NULL);
+		if (!(ntri = m_mesh_new(tri)))
+			return (NULL);
+		m_mesh_add(&mesh, ntri);
+		world_mesh = world_mesh->next;
+	}
+	return (mesh);
+}
+
 t_camera		*m_cam(void)
 {
 	t_vertex	*position;
@@ -142,13 +205,13 @@ t_camera		*m_cam(void)
 	t_camera	*camera;
 	double		conf[CONFIGSIZE];
 
-	conf[FOV] = 60.0;
-	conf[RATIO] = 1.33;
-	conf[NEAR] = 1.0;
-	conf[FAR] = 1000.0;
-	if (!(position = m_vertex_new(15.0, 15.0, 80.0, NULL)))
+	conf[FOV] = GLOBAL_FOV;
+	conf[RATIO] = GLOBAL_RATIO;
+	conf[NEAR] = GLOBAL_NEAR;
+	conf[FAR] = GLOBAL_FAR;
+	if (!(position = m_vertex_new(GLOBAL_XCAM, GLOBAL_YCAM, GLOBAL_ZCAM, NULL)))
 		return (NULL);
-	if (!(rotation = m_matrix_new(M_RY, M_PI)))
+	if (!(rotation = m_matrix_new(M_RY, GLOBAL_YROT)))
 		return (NULL);
 	if (!(camera = m_camera(position, rotation, conf)))
 		return (NULL);

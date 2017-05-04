@@ -6,7 +6,7 @@
 /*   By:  <>                                        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/03 17:51:02 by                   #+#    #+#             */
-/*   Updated: 2017/05/03 19:27:42 by                  ###   ########.fr       */
+/*   Updated: 2017/05/04 12:17:08 by                  ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -122,6 +122,43 @@ t_color			*m_color_mult(t_color *c1, int factor)
 				c1->red * factor, \
 				c1->green * factor, \
 				c1->blue * factor));
+}
+
+t_color			*m_color_bifusion(t_color *a, t_color *b, int ar)
+{
+	t_color		*cols[2];
+	t_color		*col;
+
+	if (!(cols[0] = m_color_mult(a, 1 - ar)))
+		return (NULL);
+	if (!(cols[1] = m_color_mult(b, ar)))
+		return (NULL);
+	col = m_color_add(cols[0], cols[1]);
+	m_color_del(cols + 0);
+	m_color_del(cols + 1);
+	return (col);
+}
+
+t_color			*m_color_trifusion(t_color *a, t_color *b, t_color *c, \
+										int *ar)
+{
+	t_color		*cols[4];
+	t_color		*col;
+
+	if (!(cols[0] = m_color_mult(a, ar[0])))
+		return (NULL);
+	if (!(cols[1] = m_color_mult(b, ar[1])))
+		return (NULL);
+	if (!(cols[2] = m_color_mult(c, ar[2])))
+		return (NULL);
+	if (!(cols[3] = m_color_add(cols[0], cols[1])))
+		return (NULL);
+	col = m_color_add(cols[3], cols[2]);
+	m_color_del(cols + 0);
+	m_color_del(cols + 1);
+	m_color_del(cols + 2);
+	m_color_del(cols + 3);
+	return (col);
 }
 
 void			m_color_term(t_color *c, char *mode, char *buf)

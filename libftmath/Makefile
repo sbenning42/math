@@ -6,7 +6,7 @@
 #    By: sbenning <sbenning@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2014/09/08 20:00:17 by sbenning          #+#    #+#              #
-#*   Updated: 2017/05/04 01:42:02 by                  ###   ########.fr       *#
+#*   Updated: 2017/05/04 15:36:53 by                  ###   ########.fr       *#
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,9 +14,12 @@ NAME =	libftmath.a
 
 SRC =	m_color.c\
 		m_vertex.c\
+		m_triangle.c\
+		m_mesh.c\
 		m_vector.c\
 		m_matrix.c\
-		m_camera.c
+		m_camera.c\
+		m_render.c
 
 OBJ =	$(SRC:.c=.o)
 
