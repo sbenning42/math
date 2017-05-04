@@ -5,220 +5,142 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By:  <>                                        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2017/05/01 23:23:39 by                   #+#    #+#             */
-/*   Updated: 2017/05/02 04:55:14 by                  ###   ########.fr       */
+/*   Created: 2017/05/03 17:51:02 by                   #+#    #+#             */
+/*   Updated: 2017/05/03 19:27:42 by                  ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "ft_math.h"
+#include "m_color.h"
 
-void				m_hex2rgb(unsigned int hex, unsigned char rgb[])
+void			m_color_hex_rgb(t_ui hex, t_uc *red, t_uc *green, t_uc *blue)
 {
-	rgb[M_RED_TC] = (hex & 0xff0000) >> 16;
-	rgb[M_GREEN_TC] = (hex & 0xff00) >> 8;
-	rgb[M_BLUE_TC] = hex & 0xff;
-	rgb[M_NONE_TC] = 0;
+	*red = (hex >> 0x10) & 0xff;
+	*green = (hex >> 0x8) & 0xff;
+	*blue = hex & 0xff;
 }
 
-void				m_rgb2hex(unsigned char rgb[], unsigned int *hex)
+static t_color	*color_new(int red, int green, int blue)
 {
-	*hex = 0;
-	*hex = (rgb[M_RED_TC] << 16) \
-		   | (rgb[M_GREEN_TC] << 8) \
-		   | rgb[M_BLUE_TC];
-}
+	t_color		*c;
 
-typedef struct		s_color_select
-{
-	int				type;
-	void			(*function)(t_color *, va_list *);
-}					t_color_select;
-
-void				m_color_init_hex(t_color *c, va_list *ap);
-void				m_color_init_rgb(t_color *c, va_list *ap);
-void				m_color_init_ap(t_color *c, va_list *ap);
-
-static t_color_select	g_color_select[] = {\
-	{M_HEX_TC, m_color_init_hex},\
-	{M_RGB_TC, m_color_init_rgb},\
-	{M_VAARG_TC, m_color_init_ap},\
-	{0, 0}\
-};
-
-static void			wrong_color_def_type(t_color *c, va_list *ap)
-{
-	c->v.hex = 0;
-	if (g_s_color_verbose)
-		write(2, "wrong_color_def_type\n", 21);
-	(void)ap;
-}
-
-static void			(*color_select(int color_def_type))(t_color *, va_list *)
-{
-	int				i;
-
-	i = -1;
-	while (g_color_select[++i].type > 0)
-	{
-		if (g_color_select[i].type == color_def_type)
-			return (g_color_select[i].function);
-	}
-	return (wrong_color_def_type);
-}
-
-void				m_color_init_hex(t_color *c, va_list *ap)
-{
-	c->v.hex = (va_arg(*ap, unsigned int) & 0xffffff);
-	m_hex2rgb(c->v.hex, c->v.rgb);
-}
-
-void				m_color_init_rgb(t_color *c, va_list *ap)
-{
-	c->v.rgb[M_RED_TC] = (unsigned char)va_arg(*ap, unsigned int);
-	c->v.rgb[M_GREEN_TC] = (unsigned char)va_arg(*ap, unsigned int);
-	c->v.rgb[M_BLUE_TC] = (unsigned char)va_arg(*ap, unsigned int);
-	c->v.rgb[M_NONE_TC] = 0;
-	m_rgb2hex(c->v.rgb, &c->v.hex);
-}
-
-void				m_color_init_ap(t_color *c, va_list *ap)
-{
-	int				color_def_type;
-	va_list			*ap_new;
-
-	color_def_type = va_arg(*ap, int);
-	ap_new = (va_list *)va_arg(*ap, void *); 
-	color_select(color_def_type)(c, ap_new);
-}
-
-t_color				*m_color_init(t_color *c, int color_def_type, ...)
-{
-	va_list			ap;
-	char			*verb;
-
-	va_start(ap, color_def_type);
-	c->self = c;
-	color_select(color_def_type)(c, &ap);
-	va_end(ap);
-	if (g_s_color_verbose && (verb = m_color2str(c)))
-	{
-		ft_printf("Init %s ;\n", verb);
-		free(verb);
-	}
-	return (c);
-}
-
-t_color				*m_color_clear(t_color *c)
-{
-	char			*verb;
-
-	if (g_s_color_verbose && (verb = m_color2str(c)))
-	{
-		ft_printf("Init %s ;\n", verb);
-		free(verb);
-	}
-	c->self = NULL;
-	c->v.hex = 0;
-	c->v.rgb[M_RED_TC] = 0;
-	c->v.rgb[M_GREEN_TC] = 0;
-	c->v.rgb[M_BLUE_TC] = 0;
-	c->v.rgb[M_NONE_TC] = 0;
-	return (c);
-}
-
-t_color				*m_color_new(int color_def_type, ...)
-{
-	va_list			ap;
-	t_color			*c;
-
-	va_start(ap, color_def_type);
-	c = malloc(sizeof(t_color));
-	if (!c)
+	if (!(c = ft_memalloc(sizeof(t_color))))
 		return (NULL);
-	m_color_init(c, M_VAARG_TC, color_def_type, &ap);
-	va_end(ap);
+	c->red = red;
+	c->green = green;
+	c->blue = blue;
 	return (c);
 }
 
-void				m_color_del(t_color **c)
+static t_color	*color_new_ap(int desc_type, va_list *ap)
 {
-	m_color_clear(*c);
-	free(*c);
-	*c = NULL;
+	t_ui		hex;
+	t_uc		red;
+	t_uc		green;
+	t_uc		blue;
+
+	if (desc_type == M_HEX)
+	{
+		hex = va_arg(*ap, unsigned int);
+		m_color_hex_rgb(hex, &red, &green, &blue);
+	}
+	else if (desc_type == M_RGB)
+	{
+		red = va_arg(*ap, unsigned int) & 0xff;
+		green = va_arg(*ap, unsigned int) & 0xff;
+		blue = va_arg(*ap, unsigned int) & 0xff;
+	}
+	else
+		return (NULL);
+	return (color_new(red, green, blue));
 }
 
-t_color				*m_color_add(t_color *self, t_color *c)
+t_color			*m_color_new(int desc_type, ...)
 {
-	self->v.rgb[M_RED_TC] += c->v.rgb[M_RED_TC];
-	self->v.rgb[M_GREEN_TC] += c->v.rgb[M_GREEN_TC];
-	self->v.rgb[M_BLUE_TC] += c->v.rgb[M_BLUE_TC];
-	m_rgb2hex(self->v.rgb, &self->v.hex);
-	return (self);
+	t_color		*c;
+	va_list		ap;
+	char		buf[256 + 1];
+
+	va_start(ap, desc_type);
+	c = color_new_ap(desc_type, &ap);
+	va_end(ap);
+	if (c && g_s_color_verbose == 1)
+	{
+		m_color_str(c, buf, 256);
+		ft_printf("New %s ;\n", buf);
+	}
+	return (c);
 }
 
-t_color				*m_color_sub(t_color *self, t_color *c)
+void			m_color_del(t_color **color)
 {
-	self->v.rgb[M_RED_TC] -= c->v.rgb[M_RED_TC];
-	self->v.rgb[M_GREEN_TC] -= c->v.rgb[M_GREEN_TC];
-	self->v.rgb[M_BLUE_TC] -= c->v.rgb[M_BLUE_TC];
-	m_rgb2hex(self->v.rgb, &self->v.hex);
-	return (self);
+	char		buf[256 + 1];
+
+	if (*color && g_s_color_verbose == 1)
+	{
+		m_color_str(*color, buf, 256);
+		ft_printf("Del %s ;\n", buf);
+	}
+	free(*color);
+	*color = NULL;
 }
 
-t_color				*m_color_mul(t_color *self, unsigned char facteur)
+char			*m_color_str(t_color *c, char *buf, size_t n)
 {
-	self->v.rgb[M_RED_TC] *= facteur;
-	self->v.rgb[M_GREEN_TC] *= facteur;
-	self->v.rgb[M_BLUE_TC] *= facteur;
-	m_rgb2hex(self->v.rgb, &self->v.hex);
-	return (self);
+	char		lbuf[4096 + 1];
+
+	if (!buf)
+	{
+		buf = lbuf;
+		n = 4096;
+	}
+	if (c)
+		ft_snprintf(buf, n, M_COLORSTR, c->red, c->green, c->blue);
+	else
+		ft_snprintf(buf, n, "null");
+	return ((buf == lbuf ? ft_strdup(buf) : buf));
 }
 
-char				*m_color2str(t_color *self)
+t_color			*m_color_add(t_color *c1, t_color *c2)
 {
-	char			buf[512];
-
-	ft_snprintf(buf, 512, "Color( Hex = %06x, Rgb[ %hhu, %hhu, %hhu ] )", \
-			self->v.hex, \
-			self->v.rgb[M_RED_TC], \
-			self->v.rgb[M_GREEN_TC], \
-			self->v.rgb[M_BLUE_TC]);
-	return (ft_strdup(buf));
+	return (m_color_new(M_RGB, \
+				c1->red + c2->red, \
+				c1->green + c2->green, \
+				c1->blue + c2->blue));
 }
 
-char				*m_color2ansi_esc\
-						(t_color *self, char *buf, unsigned char *mode)
+t_color			*m_color_sub(t_color *c1, t_color *c2)
 {
-	ft_sprintf(buf, "\x1b[%hhu;%hhu;%hhu;%hhu;%hhum", \
-			mode[0], mode[1], \
-			self->v.rgb[M_RED_TC], \
-			self->v.rgb[M_GREEN_TC], \
-			self->v.rgb[M_BLUE_TC]);
-	return (buf);
+	return (m_color_new(M_RGB, \
+				c1->red - c2->red, \
+				c1->green - c2->green, \
+				c1->blue - c2->blue));
 }
 
-void				m_color_put(t_color *self, unsigned char *mode)
+t_color			*m_color_mult(t_color *c1, int factor)
 {
-	ft_printf("\x1b[%hhu;%hhu;%hhu;%hhu;%hhum", \
-			mode[0], mode[1], \
-			self->v.rgb[M_RED_TC], \
-			self->v.rgb[M_GREEN_TC], \
-			self->v.rgb[M_BLUE_TC]);
+	return (m_color_new(M_RGB, \
+				c1->red * factor, \
+				c1->green * factor, \
+				c1->blue * factor));
 }
 
-void				m_reset(void)
+void			m_color_term(t_color *c, char *mode, char *buf)
 {
-	ft_printf("\x1b[0m");
+	ft_snprintf(buf, 256, M_ANSICOLOR, mode, c->red, c->green, c->blue);
 }
 
-static t_color		g_vcblack = {&g_vcblack, {0, {0, 0, 0}}};
-static t_color		g_vcred = {&g_vcred, {0xff0000, {255, 0, 0}}};
-static t_color		g_vcgreen = {&g_vcgreen, {0xff00, {0, 255, 0}}};
-static t_color		g_vcblue = {&g_vcblue, {0xff, {0, 0, 255}}};
-static t_color		g_vcwhite = {&g_vcwhite, {0xffffff, {255, 255, 255}}};
+void			m_color_xterm(t_ui hex, char *mode, char *buf)
+{
+	t_color		*c;
 
-t_color				*g_m_black = &g_vcblack;
-t_color				*g_m_red = &g_vcred;
-t_color				*g_m_blue = &g_vcblue;
-t_color				*g_m_green = &g_vcgreen;
-t_color				*g_m_white = &g_vcwhite;
+	c = m_color_new(M_HEX, hex);
+	if (!c)
+		return ;
+	m_color_term(c, mode, buf);
+	m_color_del(&c);
+}
+
+void			m_reset_xterm(char *buf)
+{
+	ft_sprintf(buf, M_ANSIRESET);
+}

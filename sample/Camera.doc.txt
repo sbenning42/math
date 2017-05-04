@@ -1,0 +1,19 @@
+<- Camera ----------------------------------------------------------------------
+The Camera class is the Pipeline that handle the transformation from 3D to 2D.
+
+new Camera( ['origin' => vector, 'orientation' => Matrix, 'width' => float, 'height' => float, 'fov' => float, 'near' => float, 'far' => float, 'ratio' => float] )
+
+All field requiered exept 'ratio' or 'width' + 'height' that are incompatible with each other.
+Any other use is undefined
+
+The class provies the following methods :
+
+Vertex watchVertex( Vertex $worldVertex ) : return the result of the transformation a NDC vertex into one with screen coordinates.
+
+Triangle watchTriangle( Triangle $worldTriangle ) : return the result of the transformation of a NDC triangle into one with screen coordinates, also set his visibility.
+
+wMesh watchMesh( $mesh ) : return the result of the transformation of a NDC mesh into one with screen coordinates.
+
+Bool isVisible( Triangle $tri ) : return true if the triangle is visible from $this.
+
+---------------------------------------------------------------------- Camera ->

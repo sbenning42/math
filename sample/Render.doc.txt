@@ -1,0 +1,23 @@
+<- Render ----------------------------------------------------------------------
+The Render class print 2D to screen, it can be used after the camera tranformations occured.
+
+new Render( $width, $height, $filename );
+
+All fiels are reauiered, any other use is undefined.
+
+The class has 3 const for different renderisation mode: VERTEX, EDGE and RESTERIZE.
+The Class provides the following methods :
+
+void renderVertex( $screenVertex ) : print $screenVertex in the image contained.
+
+void renderSegment( Vertex $origin, Vertex $end ) : print a segment in the image contained going from origin to end.
+
+void renderRasterize( Triangle $triangle ) : render the rasterization of a triangle.
+
+void renderTriangle( Triangle $triangle, $mode ) : Render a triangle depending on mode choosen.
+
+void renderMesh( $mesh ) : Render a mesh depending on the mide choosen.
+
+void develop() : develop the image in the field specified when render was created.
+
+---------------------------------------------------------------------- Render ->

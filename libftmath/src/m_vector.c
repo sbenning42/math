@@ -5,130 +5,186 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By:  <>                                        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2017/05/02 04:00:18 by                   #+#    #+#             */
-/*   Updated: 2017/05/02 06:31:36 by                  ###   ########.fr       */
+/*   Created: 2017/05/03 19:35:33 by                   #+#    #+#             */
+/*   Updated: 2017/05/04 00:29:59 by                  ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "ft_math.h"
+#include "m_vector.h"
 
-t_vector	*m_vector_init(t_vector *self, t_vertex *dest, t_vertex *orig)
-{
-	char	*verb;
-
-	self->self = self;
-	self->magn[M_X_VCT] = dest->coo[M_X_VTX] - orig->coo[M_X_VTX];
-	self->magn[M_Y_VCT] = dest->coo[M_Y_VTX] - orig->coo[M_Y_VTX];
-	self->magn[M_Z_VCT] = dest->coo[M_Z_VTX] - orig->coo[M_Z_VTX];
-	self->magn[M_W_VCT] = 1.0;
-	if (g_s_vector_verbose && (verb = m_vector2str(self)))
-	{
-		ft_printf("Init %s ;\n", verb);
-		free(verb);
-	}
-	return (self);
-}
-
-t_vector	*m_vector_clear(t_vector *self)
-{	
-	char	*verb;
-
-	if (g_s_vector_verbose && (verb = m_vector2str(self)))
-	{
-		ft_printf("Clear %s ;\n", verb);
-		free(verb);
-	}
-	ft_bzero(self, sizeof(t_vector));
-	self->self = self;
-	return (self);
-}
-
-t_vector	*m_vector_new(t_vertex *dest, t_vertex *orig)
+t_vector		*m_vector_new(t_vertex *dest, t_vertex *origin)
 {
 	t_vector	*vct;
+	char		buf[256 + 1];
 
 	if (!(vct = ft_memalloc(sizeof(t_vector))))
 		return (NULL);
-	m_vector_init(vct, dest, orig);
+	if (origin)
+	{
+		vct->v[0] = dest->v[0] - origin->v[0];
+		vct->v[1] = dest->v[1] - origin->v[1];
+		vct->v[2] = dest->v[2] - origin->v[2];
+		vct->v[3] = dest->v[3] - origin->v[3];
+	}
+	else
+	{
+		vct->v[0] = dest->v[0];
+		vct->v[1] = dest->v[1];
+		vct->v[2] = dest->v[2];
+		vct->v[3] = dest->v[3] - 1.0;
+	}
+	if (g_s_vector_verbose == 1)
+	{
+		m_vector_str(vct, buf, 256);
+		ft_printf("New %s ;\n", buf);
+	}
 	return (vct);
 }
 
-void		m_vector_del(t_vector **vct)
+void			m_vector_del(t_vector **vct)
 {
-	m_vector_clear(*vct);
-	free(*vct);
-	*vct = NULL;
+	char		buf[256 + 1];
+
+	if (*vct && g_s_vector_verbose == 1)
+	{
+		m_vector_str(*vct, buf, 256);
+		ft_printf("Del %s ;\n", buf);
+	}
+	if (*vct)
+	{
+		free(*vct);
+		*vct = NULL;
+	}
 }
 
-double		m_vector_magnitude(t_vector *self)
+char			*m_vector_str(t_vector *vct, char *buf, size_t n)
 {
-	return (sqrt(\
-				pow(self->magn[M_X_VCT], 2.0) \
-				+ pow(self->magn[M_Y_VCT], 2.0) \
-				+ pow(self->magn[M_Z_VCT], 2.0)));
+	char		lbuf[256 + 1];
+
+	if (!buf)
+	{
+		buf = lbuf;
+		n = 256;
+	}
+	if (vct)
+		snprintf(buf, n, M_VCTSTR, vct->v[0], vct->v[1], vct->v[2], vct->v[3]);
+	else
+		snprintf(buf, n, "null");
+	return ((buf == lbuf ? ft_strdup(buf) : buf));
 }
 
-t_vector	*m_vector_normalize(t_vector *self)
+double			m_vector_magnitude(t_vector *vct)
 {
-	return (self);
+	return (sqrt(vct->v[0] * vct->v[0] \
+				+ vct->v[1] * vct->v[1] \
+				+ vct->v[2] * vct->v[2]));
 }
 
-t_vector	*m_vector_add(t_vector *self, t_vector *rhs)
+t_vector		*m_vector_normalize(t_vector *vct1)
 {
-	return (self);
-	(void)rhs;
+	double		magnitude;
+	t_vertex	*vtx;
+	t_vector	*vct;
+
+	magnitude = m_vector_magnitude(vct1);
+	magnitude = 1.0 / magnitude;
+	if (!(vtx = m_vertex_new(\
+					vct1->v[0] * magnitude, \
+					vct1->v[1] * magnitude, \
+					vct1->v[2] * magnitude, \
+					NULL)))
+		return (NULL);
+	vct = m_vector_new(vtx, NULL);
+	m_vertex_del(&vtx);
+	return (vct);
 }
 
-t_vector	*m_vector_sub(t_vector *self, t_vector *rhs)
+t_vector		*m_vector_opposite(t_vector *vct1)
 {
-	return (self);
-	(void)rhs;
+	t_vertex	*vtx;
+	t_vector	*vct;
+
+	if (!(vtx = m_vertex_new(-vct1->v[0], -vct1->v[1], -vct1->v[2], NULL)))
+		return (NULL);
+	vct = m_vector_new(vtx, NULL);
+	m_vertex_del(&vtx);
+	return (vct);
+
 }
 
-t_vector	*m_vector_opposite(t_vector *self)
+t_vector		*m_vector_scalar(t_vector *vct1, double factor)
 {
-	return (self);
+	t_vertex	*vtx;
+	t_vector	*vct;
+
+	if (!(vtx = m_vertex_new(\
+					vct1->v[0] * factor, \
+					vct1->v[1] * factor, \
+					vct1->v[2] * factor, \
+					NULL)))
+		return (NULL);
+	vct = m_vector_new(vtx, NULL);
+	m_vertex_del(&vtx);
+	return (vct);
 }
 
-t_vector	*m_vector_scalar_product(t_vector *self, double factor)
+t_vector		*m_vector_add(t_vector *vct1, t_vector *vct2)
 {
-	return (self);
-	(void)factor;
+	t_vertex	*vtx;
+	t_vector	*vct;
+
+	if (!(vtx = m_vertex_new(\
+					vct1->v[0] + vct2->v[0], \
+					vct1->v[1] + vct2->v[1], \
+					vct1->v[2] + vct2->v[2], \
+					NULL)))
+		return (NULL);
+	vct = m_vector_new(vtx, NULL);
+	m_vertex_del(&vtx);
+	return (vct);
 }
 
-t_vector	*m_vector_dot_product(t_vector *self, t_vector *rhs)
+t_vector		*m_vector_sub(t_vector *vct1, t_vector *vct2)
 {
-	return (self);
-	(void)rhs;
+	t_vertex	*vtx;
+	t_vector	*vct;
+
+	if (!(vtx = m_vertex_new(\
+					vct1->v[0] - vct2->v[0], \
+					vct1->v[1] - vct2->v[1], \
+					vct1->v[2] - vct2->v[2], \
+					NULL)))
+		return (NULL);
+	vct = m_vector_new(vtx, NULL);
+	m_vertex_del(&vtx);
+	return (vct);
 }
 
-double		m_vector_dot_product(t_vector *self, t_vector *rhs)
+double			m_vector_dot(t_vector *vct1, t_vector *vct2)
 {
-	return (self);
-	(void)rhs;
+	return (vct1->v[0] * vct2->v[0] \
+			+ vct1->v[1] * vct2->v[1] \
+			+ vct1->v[2] * vct2->v[2]);
 }
 
-t_vector	*m_vector_cross_product(t_vector *self, t_vector *rhs)
+double			m_vector_cos(t_vector *vct1, t_vector *vct2)
 {
-	return (self);
-	(void)rhs;
+	return (m_vector_dot(vct1, vct2) \
+			/ abs(m_vector_magnitude(vct1) * m_vector_magnitude(vct2)));
 }
 
-char		*m_vector2str(t_vector *self)
+t_vector		*m_vector_cross(t_vector *vct1, t_vector *vct2)
 {
-	char	buf[1024];
+	t_vertex	*vtx;
+	t_vector	*vct;
 
-	ft_snprintf(buf, 1024, "Vector( Magn[ %d.xx, %d.xx, %d.xx, %d.xx ] )", \
-			(int)self->magn[M_X_VCT], \
-			(int)self->magn[M_Y_VCT], \
-			(int)self->magn[M_Z_VCT], \
-			(int)self->magn[M_W_VCT]);
-	return (ft_strdup(buf));
+	if (!(vtx = m_vertex_new(\
+					vct1->v[1] * vct2->v[2] - vct1->v[2] * vct2->v[1], \
+					vct1->v[2] * vct2->v[0] - vct1->v[0] * vct2->v[2], \
+					vct1->v[0] * vct2->v[1] - vct1->v[1] * vct2->v[0], \
+					NULL)))
+		return (NULL);
+	vct = m_vector_new(vtx, NULL);
+	m_vertex_del(&vtx);
+	return (vct);
 }
-
-static t_vector		g_m_vvct_orig = {\
-	&g_m_vvct_orig, \
-	{0.0, 0.0, 0.0, 1.0}\
-};
-
-t_vector			*g_m_vct_orig = &g_m_vvct_orig;

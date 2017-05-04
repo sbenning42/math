@@ -6,7 +6,7 @@
 #    By: sbenning <sbenning@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2014/09/08 20:00:17 by sbenning          #+#    #+#              #
-#*   Updated: 2017/05/02 05:34:30 by                  ###   ########.fr       *#
+#*   Updated: 2017/05/04 01:42:02 by                  ###   ########.fr       *#
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,7 +14,9 @@ NAME =	libftmath.a
 
 SRC =	m_color.c\
 		m_vertex.c\
-		m_vector.c
+		m_vector.c\
+		m_matrix.c\
+		m_camera.c
 
 OBJ =	$(SRC:.c=.o)
 
@@ -35,7 +37,7 @@ CC =		gcc
 
 FLAGS =		-Wall -Wextra -Werror 
 
-all : $(NAME) include/ft_math.h
+all : $(NAME)
 
 $(NAME) : $(OBJ_L)
 	ar cr $@ $^

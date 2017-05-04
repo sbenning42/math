@@ -1,0 +1,32 @@
+<- Vector ----------------------------------------------------------------------
+The Vector class handles the representation of a vector in space.
+
+An instance can be constructed from two discinct Vertex dest and orig.
+new Vector( (array( 'dest' => $Vertex, 'orig' => $Vertex) ) );
+
+dest is required, orig wll be set to (0;0;0;1) if not defined.
+Any other use is undefined.
+
+The class provides the following methods :
+
+float magnitude() : get the magnitude of the vector.
+
+Vector normalize() : return a new instance of the normalized vector, if the
+vector is already normalized return a fresh clone.
+
+Vector add( Vector $rhs ) : return the sum of two vector.
+
+Vector sub( Vector $rhs ) : return the substraction of the two vector.
+
+Vector opposite() : return the opposite vector.
+
+Vector scalarProduct( Vector $rhs ) : return the scalar product of the vector
+with a scalar.
+
+float dotProduct( Vector $rhs ) : return the scalar product of two vectors.
+
+float cos( Vector $rhs ) : return the cosine angle between the two vectors.
+
+Vector crossProduct( Vector $rhs ) : return the cross product of the two vectors.
+
+---------------------------------------------------------------------- Vector ->

@@ -5,81 +5,128 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By:  <>                                        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2017/05/02 04:00:18 by                   #+#    #+#             */
-/*   Updated: 2017/05/02 06:22:00 by                  ###   ########.fr       */
+/*   Created: 2017/05/03 18:56:57 by                   #+#    #+#             */
+/*   Updated: 2017/05/04 00:28:50 by                  ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "ft_math.h"
+#include "m_vertex.h"
 
-t_vertex	*m_vertex_init(t_vertex *self, double *coo, t_color *c)
-{
-	char	*verb;
-
-	self->self = self;
-	self->color = c;
-	self->coo[M_X_VTX] = coo[M_X_VTX];
-	self->coo[M_Y_VTX] = coo[M_Y_VTX];
-	self->coo[M_Z_VTX] = coo[M_Z_VTX];
-	self->coo[M_W_VTX] = coo[M_W_VTX];
-	if (g_s_vertex_verbose && (verb = m_vertex2str(self)))
-	{
-		ft_printf("Init %s ;\n", verb);
-		free(verb);
-	}
-	return (self);
-}
-
-t_vertex	*m_vertex_clear(t_vertex *self)
-{	
-	char	*verb;
-
-	if (g_s_vertex_verbose && (verb = m_vertex2str(self)))
-	{
-		ft_printf("Clear %s ;\n", verb);
-		free(verb);
-	}
-	ft_bzero(self, sizeof(t_vertex));
-	self->self = self;
-	return (self);
-}
-
-t_vertex	*m_vertex_new(double *coo, t_color *c)
+t_vertex		*m_vertex_new(double x, double y, double z, t_color *c)
 {
 	t_vertex	*vtx;
+	char		buf[512 + 1];
 
 	if (!(vtx = ft_memalloc(sizeof(t_vertex))))
 		return (NULL);
-	m_vertex_init(vtx, coo, c);
+	if (c)
+	{
+		if (!(vtx->c = m_color_new(M_RGB, c->red, c->green, c->blue)))
+			return (NULL);
+	}
+	else
+	{
+		if (!(vtx->c = m_color_new(M_HEX, 0xffffff)))
+			return (NULL);
+	}
+	vtx->v[0] = x;
+	vtx->v[1] = y;
+	vtx->v[2] = z;
+	vtx->v[3] = 1.0;
+	if (g_s_vertex_verbose == 1)
+	{
+		m_vertex_str(vtx, buf, 512);
+		ft_printf("New %s ;\n", buf);
+	}
 	return (vtx);
 }
 
-void		m_vertex_del(t_vertex **vtx)
+void			m_vertex_del(t_vertex **vtx)
 {
-	m_vertex_clear(*vtx);
-	free(*vtx);
-	*vtx = NULL;
+	char		buf[512 + 1];
+
+	if (g_s_vertex_verbose == 1)
+	{
+		m_vertex_str(*vtx, buf, 512);
+		ft_printf("Del %s ;\n", buf);
+	}
+	if (*vtx)
+	{
+		if ((*vtx)->c)
+			m_color_del(&(*vtx)->c);
+		free(*vtx);
+		*vtx = NULL;
+	}
 }
 
-char		*m_vertex2str(t_vertex *self)
+char			*m_vertex_str(t_vertex *vtx, char *buf, size_t n)
 {
-	char	buf[1024];
-	char	*strcolor;
+	char		lbuf[512 + 1];
+	char		lcbuf[256 + 1];
 
-	strcolor = m_color2str(self->color);
-	ft_snprintf(buf, 1024, "Vertex( Coo[ %d.xx, %d.xx, %d.xx, %d.xx ], %s )", \
-			(int)self->coo[M_X_VTX], \
-			(int)self->coo[M_Y_VTX], \
-			(int)self->coo[M_Z_VTX], \
-			(int)self->coo[M_W_VTX], \
-			strcolor);
-	free(strcolor);
-	return (ft_strdup(buf));
+	if (!buf)
+	{
+		buf = lbuf;
+		n = 512;
+	}
+	if (vtx)
+	{
+		m_color_str(vtx->c, lcbuf, 256);
+		snprintf(buf, n, M_VTXSTR, \
+				vtx->v[0], vtx->v[1], vtx->v[2], vtx->v[3], lcbuf);
+	}
+	else
+		ft_snprintf(buf, n, "null");
+	return ((buf == lbuf ? ft_strdup(buf) : buf));
 }
 
-static t_vertex		g_m_vvtx_orig = {\
-	&g_m_vvtx_orig, \
-	{0.0, 0.0, 0.0, 1.0}, \
-	NULL};
+t_vertex		*m_vertex_add(t_vertex *vtx1, t_vertex *vtx2)
+{
+	t_color		*tmp;
+	t_vertex	*vtx;
 
-t_vertex			*g_m_vtx_orig = &g_m_vvtx_orig;
+	tmp = m_color_add(vtx1->c, vtx2->c);
+	if (!tmp)
+		return (NULL);
+	vtx = m_vertex_new(\
+			vtx1->v[0] + vtx2->v[0], \
+			vtx1->v[1] + vtx2->v[1], \
+			vtx1->v[2] + vtx2->v[2], \
+			tmp);
+	m_color_del(&tmp);
+	return (vtx);
+}
+
+t_vertex		*m_vertex_sub(t_vertex *vtx1, t_vertex *vtx2)
+{
+	t_color		*tmp;
+	t_vertex	*vtx;
+
+	tmp = m_color_sub(vtx1->c, vtx2->c);
+	if (!tmp)
+		return (NULL);
+	vtx = m_vertex_new(\
+			vtx1->v[0] - vtx2->v[0], \
+			vtx1->v[1] - vtx2->v[1], \
+			vtx1->v[2] - vtx2->v[2], \
+			tmp);
+	m_color_del(&tmp);
+	return (vtx);
+}
+
+t_vertex		*m_vertex_mult(t_vertex *vtx1, double factor)
+{
+	t_color		*tmp;
+	t_vertex	*vtx;
+
+	tmp = m_color_mult(vtx1->c, factor);
+	if (!tmp)
+		return (NULL);
+	vtx = m_vertex_new(\
+			vtx1->v[0] * factor, \
+			vtx1->v[1] * factor, \
+			vtx1->v[2] * factor, \
+			tmp);
+	m_color_del(&tmp);
+	return (vtx);
+}

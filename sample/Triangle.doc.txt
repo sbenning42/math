@@ -1,0 +1,28 @@
+<- Triangle ----------------------------------------------------------------------
+The Triangle class handles the representation of a triangle.
+
+An instance can be created using 3 vertex: 
+new Triangle( $A, $B, $C );
+
+All fields are reauiered, any other use is undefined.
+
+The class provides the following methods :
+
+Vertex getA() : return a clone of $A;
+
+Vertex getB() : return a clone of $B;
+
+Vertex getC() : return a clone of $C;
+
+Bool getVisibility() : return true if the triangle is visible, this is only relevant for transformed triangle.
+
+void setVisibility( $val ) : set visiblity of the triangle.
+
+Vector getNormal() : return the normal vector of $this.
+
+Vertex getCentroid() : return the centroid point of $this.
+
+Number area() : return the area of a triangle.
+
+Color get_point_color( Vertex $p ) : return the color of a point ina triangle.
+---------------------------------------------------------------------- Triangle ->
