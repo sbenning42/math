@@ -6,7 +6,7 @@
 #    By: sbenning <sbenning@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2014/09/08 20:00:17 by sbenning          #+#    #+#              #
-#*   Updated: 2017/05/04 15:36:53 by                  ###   ########.fr       *#
+#*   Updated: 2017/05/04 17:06:45 by                  ###   ########.fr       *#
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,6 +19,7 @@ SRC =	m_color.c\
 		m_vector.c\
 		m_matrix.c\
 		m_camera.c\
+		m_preset.c\
 		m_render.c
 
 OBJ =	$(SRC:.c=.o)

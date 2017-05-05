@@ -6,7 +6,7 @@
 /*   By:  <>                                        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/04 12:20:20 by                   #+#    #+#             */
-/*   Updated: 2017/05/04 14:38:42 by                  ###   ########.fr       */
+/*   Updated: 2017/05/04 23:31:12 by                  ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,8 +17,8 @@
 # define M_EDGE 2
 # define M_RASTERIZE 3
 
-# define M_RENDERSTR "Render( width = %.2f, height = "\
-						"%.2f, filename = %s, buf = %p )"
+# define M_RENDERSTR "Render( width = %.2f, height = %.2f, buf = %p, "\
+							"bpp = %d, size line = %d, endian %d )"
 
 # include "m_mesh.h"
 
@@ -28,14 +28,16 @@ int						g_s_render_verbose;
 
 struct					s_render
 {
-	char				*filename;
-	char				**buf;
+	char				*buf;
 	double				width;
 	double				height;
+	int					bpp;
+	int					sizel;
+	int					endian;
 };
 
-t_render			*m_render_new(double width, double height, \
-									char **buf, char *filename);
+t_render			*m_render_new(double width, double height, char *buf, \
+									int bpp, int sizel, int endian);
 void				m_render_del(t_render **render);
 char				*m_render_str(t_render *render, char *buf, size_t n);
 void				m_render_vtx(t_render *render, t_vertex *vtx);
